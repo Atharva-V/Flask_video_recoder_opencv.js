@@ -1,21 +1,21 @@
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Opencv JS</title>
-    <style>
-    video{
-    display:none;
-    }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'style.css') }}" media="all">
 </head>
 <body>
+    <div id="container">
     <video id="cam_input" height="480" width="640"></video>
+    <button id="load">load</button>
     <canvas id="canvas_output"></canvas>
+    <div id="gallery"></div>
+    </div>
 </body>
 <script type="text/JavaScript">
 function openCvReady() {
-    console.log(cv)
 let  run=()=>{
     let video = document.getElementById("cam_input"); // video is the id of video tag
     navigator.mediaDevices.getUserMedia({ video: true, audio: false })
@@ -31,11 +31,12 @@ let  run=()=>{
     let gray = new cv.Mat();
     let cap = new cv.VideoCapture(cam_input);
     const FPS = 24;
+
     function processVideo() {
         let begin = Date.now();
         cap.read(src);
         src.copyTo(dst);
-        cv.cvtColor(dst, gray, cv.COLOR_RGBA2GRAY, 0);
+        cv.cvtColor(dst, gray, cv.COLOR_RGBA2GRAY, 1);
         cv.imshow("canvas_output", gray);
         // schedule next one.
         let delay = 1000/FPS - (Date.now() - begin);
@@ -45,6 +46,16 @@ let  run=()=>{
 setTimeout(processVideo, 0);
 };
 run();
+document.querySelector("#load").addEventListener("click",()=>{
+    let c = document.querySelector("#canvas_output");
+    let g = document.querySelector("#gallery");
+    for(let i=0;i<60;i++){
+    let i = new Image();
+    i.src = c.toDataURL();
+    i.height = 100;
+    g.append(i);
+}
+});
 }
 </script>
 
