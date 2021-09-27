@@ -1,0 +1,62 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opencv JS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'style.css') }}" media="all">
+</head>
+<body>
+    <div id="container">
+    <video id="cam_input" height="480" width="640"></video>
+    <button id="load">load</button>
+    <canvas id="canvas_output"></canvas>
+    <div id="gallery"></div>
+    </div>
+</body>
+<script type="text/JavaScript">
+function openCvReady() {
+let  run=()=>{
+    let video = document.getElementById("cam_input"); // video is the id of video tag
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    .then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+    })
+    .catch(function(err) {
+        console.log("An error occurred! " + err);
+    });
+    let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+    let dst = new cv.Mat(video.height, video.width, cv.CV_8UC1);
+    let gray = new cv.Mat();
+    let cap = new cv.VideoCapture(cam_input);
+    let c = document.querySelector("#canvas_output");
+    let g = document.querySelector("#gallery");
+    const FPS = 60;
+    var count = 0;
+
+    function processVideo() {
+        let begin = Date.now();
+        let i = new Image();
+        i.src = c.toDataURL();
+        i.height = 100;
+        g.append(i);
+        console.log(g);
+        cap.read(src);
+        src.copyTo(dst);
+        cv.imshow("canvas_output", dst);
+        // schedule next one.
+        let delay = 1000/FPS - (Date.now() - begin);
+        if (count<=60){
+        setTimeout(processVideo, 1000);
+        count += 1;
+        } 
+}
+// schedule first one.
+setTimeout(processVideo, 0);
+};
+document.querySelector("#load").addEventListener("click",run);
+}
+</script>
+
+<script src="{{ url_for('static', filename = 'opencv.js') }}" onload="openCvReady();"></script>
+</html>
