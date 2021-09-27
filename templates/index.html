@@ -1,37 +1,62 @@
-<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Hello OpenCV.js</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opencv JS</title>
+    <link rel="stylesheet" type = "text/css" href="{{ url_for('static', filename = 'style.css') }}">
 </head>
 <body>
-<h2>Hello OpenCV.js</h2>
-<p id="status">OpenCV.js is loading...</p>
-<div>
-  <div class="inputoutput">
-    <img id="imageSrc" alt="No Image" />
-    <div class="caption">imageSrc <input type="file" id="fileInput" name="file" /></div>
-  </div>
-  <div class="inputoutput">
-    <canvas id="canvasOutput" ></canvas>
-    <div class="caption">canvasOutput</div>
-  </div>
-</div>
-<script type="text/javascript">
-let imgElement = document.getElementById('imageSrc');
-let inputElement = document.getElementById('fileInput');
-inputElement.addEventListener('change', (e) => {
-  imgElement.src = URL.createObjectURL(e.target.files[0]);
-}, false);
-imgElement.onload = function() {
-  let mat = cv.imread(imgElement);
-  cv.imshow('canvasOutput', mat);
-  mat.delete();
+    <div id="container">
+    <video id="cam_input" height="480" width="640"></video>
+    <button id="load">load</button>
+    <canvas id="canvas_output"></canvas>
+    <div id="gallery"></div>
+    </div>
+</body>
+<script type="text/JavaScript">
+function openCvReady() {
+let  run=()=>{
+    let video = document.getElementById("cam_input"); // video is the id of video tag
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    .then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+    })
+    .catch(function(err) {
+        console.log("An error occurred! " + err);
+    });
+    let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+    let dst = new cv.Mat(video.height, video.width, cv.CV_8UC1);
+    let gray = new cv.Mat();
+    let cap = new cv.VideoCapture(cam_input);
+    let c = document.querySelector("#canvas_output");
+    let g = document.querySelector("#gallery");
+    const FPS = 60;
+    var count = 0;
+
+    function processVideo() {
+        let begin = Date.now();
+        let i = new Image();
+        i.src = c.toDataURL();
+        i.height = 100;
+        g.append(i);
+        console.log(g);
+        cap.read(src);
+        src.copyTo(dst);
+        cv.imshow("canvas_output", dst);
+        // schedule next one.
+        let delay = 1000/FPS - (Date.now() - begin);
+        if (count<=60){
+        setTimeout(processVideo, 1000);
+        count += 1;
+        } 
+}
+// schedule first one.
+setTimeout(processVideo, 0);
 };
-function onOpenCvReady() {
-  document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+document.querySelector("#load").addEventListener("click",run);
 }
 </script>
-<script async src="{{ url_for('static', filename = 'opencv.js') }}" onload="onOpenCvReady();" type="text/javascript"></script>
-</body>
+
+<script src="{{ url_for('static', filename = 'opencv.js') }}" onload="openCvReady();"></script>
 </html>
